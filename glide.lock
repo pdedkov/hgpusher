@@ -1,0 +1,6 @@
+hash: f4d3dd9974319098db8449d712fd5a9735052cfa8bfa78aa09abbdaf21344bec
+updated: 2016-12-12T14:58:50.188371516+03:00
+imports:
+- name: bitbucket.org/gohg/gohg
+  version: 32d5a063a72bdf016a2600b966d741977761eda3
+testImports: []
