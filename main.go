@@ -47,7 +47,7 @@ func main() {
 			client := hg.NewHgClient()
 			err := client.Connect("", folder, nil, false)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalf("%s -> %v", folder, err)
 			}
 			defer client.Disconnect()
 
@@ -65,7 +65,7 @@ func main() {
 				}
 
 				// commit changes
-				err = client.Commit([]hg.HgOption{hg.Message("commit changes"), hg.User(username)}, []string{""})
+				err = client.Commit([]hg.HgOption{hg.Message("commit changes"), hg.User(*username)}, []string{""})
 				if err == nil {
 					fmt.Printf("Commited %s\n", folder)
 				} else {
@@ -73,14 +73,14 @@ func main() {
 				}
 			}
 			// check output changes
-			hgcmd := []string{"out", "--config", "auth.x.prefix=*", "--config", fmt.Sprintf("auth.x.username=%s", login), "--config", fmt.Sprintf("auth.x.password=%s", password)}
+			hgcmd := []string{"out", "--config", "auth.x.prefix=*", "--config", fmt.Sprintf("auth.x.username=%s", *login), "--config", fmt.Sprintf("auth.x.password=%s", *password)}
 			out, err := client.ExecCmd(hgcmd)
 			// муть какая-то если нечего пушить, то
 			if err == nil {
 				// output exists try to push
 				if out != nil {
 					fmt.Printf("Output changeset exists %s\n", folder)
-					hgcmd = []string{"push", "--config", "auth.x.prefix=*", "--config", fmt.Sprintf("auth.x.username=%s", login), "--config", fmt.Sprintf("auth.x.password=%s", password)}
+					hgcmd = []string{"push", "--config", "auth.x.prefix=*", "--config", fmt.Sprintf("auth.x.username=%s", *login), "--config", fmt.Sprintf("auth.x.password=%s", *password)}
 					_, err = client.ExecCmd(hgcmd)
 					if err == nil {
 						fmt.Printf("Push done %s\n", folder)
@@ -88,10 +88,8 @@ func main() {
 						fmt.Printf("Push failed %s\n", err.Error())
 					}
 				} else {
-					fmt.Printf("Nothing to push %s\n", folder)
+					fmt.Printf("Nothing to push %s -> %s \n", folder, out)
 				}
-			} else {
-				fmt.Printf("Nothing to push %s\n", folder)
 			}
 		}(f)
 	}
