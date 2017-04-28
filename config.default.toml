@@ -1,0 +1,10 @@
+# hgpusher app toml config
+
+# Mercurial login
+login = ""
+# Mercurial password
+password = ""
+# Mercurial username
+username = ""
+# hg repo default root path
+root = "."
