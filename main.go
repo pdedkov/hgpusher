@@ -11,18 +11,24 @@ import (
 	hg "bitbucket.org/gohg/gohg"
 )
 
-var (
-	login = flag.String("login", os.Getenv("HG_LOGIN"), "Mercurial login")
-	password = flag.String("password", os.Getenv("HG_PASSWORD"), "Mercurial password")
-	username = flag.String("username", os.Getenv("HG_USERNAME"), "Mercurial username")
-)
-
 func main() {
+	var (
+		config = flag.String("config",
+			fmt.Sprintf("%s%s.hgpusher.toml", os.Getenv("HOME"), string(os.PathSeparator)),
+			"config path",
+		)
+	)
+
 	flag.Parse()
+
+	conf, err := NewConfigFromFile(*config)
+	if err != nil {
+		log.Fatalf("Error while loading config: %v", err)
+	}
 
 	root := flag.Arg(0)
 	if root == "" {
-		root = "."
+		root = conf.Root
 	}
 
 	fmt.Printf("Start from: %s\n", root)
@@ -65,7 +71,10 @@ func main() {
 				}
 
 				// commit changes
-				err = client.Commit([]hg.HgOption{hg.Message("commit changes"), hg.User(*username)}, []string{""})
+				err = client.Commit(
+					[]hg.HgOption{hg.Message("commit changes"),
+						hg.User(conf.Username)}, []string{""},
+				)
 				if err == nil {
 					fmt.Printf("Commited %s\n", folder)
 				} else {
@@ -73,14 +82,24 @@ func main() {
 				}
 			}
 			// check output changes
-			hgcmd := []string{"out", "--config", "auth.x.prefix=*", "--config", fmt.Sprintf("auth.x.username=%s", *login), "--config", fmt.Sprintf("auth.x.password=%s", *password)}
+			hgcmd := []string{
+				"out",
+				"--config", "auth.x.prefix=*",
+				"--config", fmt.Sprintf("auth.x.username=%s", conf.Login),
+				"--config", fmt.Sprintf("auth.x.password=%s", conf.Password),
+			}
 			out, err := client.ExecCmd(hgcmd)
 			// муть какая-то если нечего пушить, то
 			if err == nil {
 				// output exists try to push
 				if out != nil {
 					fmt.Printf("Output changeset exists %s\n", folder)
-					hgcmd = []string{"push", "--config", "auth.x.prefix=*", "--config", fmt.Sprintf("auth.x.username=%s", *login), "--config", fmt.Sprintf("auth.x.password=%s", *password)}
+					hgcmd = []string{
+						"push",
+						"--config", "auth.x.prefix=*",
+						"--config", fmt.Sprintf("auth.x.username=%s", conf.Login),
+						"--config", fmt.Sprintf("auth.x.password=%s", conf.Password),
+					}
 					_, err = client.ExecCmd(hgcmd)
 					if err == nil {
 						fmt.Printf("Push done %s\n", folder)
