@@ -9,7 +9,16 @@ import (
 	"sync"
 
 	hg "bitbucket.org/gohg/gohg"
+	"github.com/pdedkov/goconfig"
 )
+
+// Config app config
+type Config struct {
+	Login    string
+	Password string
+	Username string
+	Root     string
+}
 
 func main() {
 	var (
@@ -21,7 +30,8 @@ func main() {
 
 	flag.Parse()
 
-	conf, err := NewConfigFromFile(*config)
+	var conf Config
+	err := goconfig.NewConfigFromFile(*config, &conf)
 	if err != nil {
 		log.Fatalf("Error while loading config: %v", err)
 	}
